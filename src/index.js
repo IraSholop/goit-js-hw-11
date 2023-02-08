@@ -11,7 +11,7 @@ const postApiService = new PostApiService();
 form.addEventListener('submit', onSearch);
 btn.addEventListener('click', onLoadMore);
 
-function onSearch(e) {
+async function onSearch(e) {
   e.preventDefault();
   const value = e.target.elements.searchQuery.value.trim();
   if (value === '') {
@@ -20,10 +20,10 @@ function onSearch(e) {
     clearGallery();
     return;
   }
-
   postApiService.query = value;
   postApiService.resetPage();
-  postApiService.fetchPost().then(post => {
+  const post = await postApiService.fetchPost()
+ try {
     if (post.hits.length === 0) {
       Notiflix.Notify.failure(
         'Sorry, there are no images matching your search query. Please try again.'
@@ -34,24 +34,33 @@ function onSearch(e) {
     } else {
       clearGallery();
       Notiflix.Notify.success(`Hooray! We found ${post.totalHits} images`);
-      appendPostMarkup(post);
-      addClassBtn();
+      if(post.hits.length < 40){
+        endPage(post);
+      }else{
+        appendPostMarkup(post);
+        addClassBtn();
+      }
+      
     }
-  });
+  }
+  catch (error) {
+  console.error(error);
+};
+ 
 }
 
-function onLoadMore() {
-  postApiService.fetchPost().then(post => {
-    if (post.hits.length === 0) {
-      removeClassBtn();
-      gallery.insertAdjacentHTML(
-        'beforeend',
-        `<b>We're sorry, but you've reached the end of search results.<b>`
-      );
+async function onLoadMore() {
+  const post = await postApiService.fetchPost()
+  console.log(post);
+  try {
+    if (post.hits.length < 40) {
+        endPage(post);
     } else {
       appendPostMarkup(post);
     }
-  });
+  }catch(error){
+    console.error(error);
+  };
 }
 
 function appendPostMarkup(obj) {
@@ -93,4 +102,14 @@ function addClassBtn() {
 
 function removeClassBtn() {
   btn.classList.remove('is-hidden');
+}
+
+function endPage(post) {
+  const btn = document.querySelector(".btn");
+      appendPostMarkup(post);
+      removeClassBtn();
+      gallery.insertAdjacentHTML(
+        'beforeend',
+        `<div class="message"><b>We're sorry, but you've reached the end of search results.<b></biv>`
+      );
 }
