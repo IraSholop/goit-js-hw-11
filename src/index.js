@@ -22,8 +22,9 @@ async function onSearch(e) {
   }
   postApiService.query = value;
   postApiService.resetPage();
-  const post = await postApiService.fetchPost()
+  
  try {
+   const post = await postApiService.fetchPost();
     if (post.hits.length === 0) {
       Notiflix.Notify.failure(
         'Sorry, there are no images matching your search query. Please try again.'
@@ -50,9 +51,8 @@ async function onSearch(e) {
 }
 
 async function onLoadMore() {
-  const post = await postApiService.fetchPost()
-  console.log(post);
   try {
+    const post = await postApiService.fetchPost();
     if (post.hits.length < 40) {
         endPage(post);
     } else {
